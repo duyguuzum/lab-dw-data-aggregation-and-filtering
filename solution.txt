@@ -1,0 +1,82 @@
+Lab | Data Aggregation and Filtering
+Objective: Use Python programming techniques to filter and order data subsets, group data by one or more variables, and use aggregation functions to obtain insights, and derive meaningful conclusions from the data.
+
+In this challenge, we will continue to work with customer data from an insurance company. We will use the dataset called marketing_customer_analysis.csv, which can be found at the following link:
+
+https://raw.githubusercontent.com/data-bootcamp-v4/data/main/marketing_customer_analysis.csv
+
+This dataset contains information such as customer demographics, policy details, vehicle information, and the customer's response to the last marketing campaign. Our goal is to explore and analyze this data by performing first data cleaning, formatting, and structuring.
+
+Start by reading the dataset, standardizing column names, dealing with null values and creating the month column. You can do so by using the functions you developed in previous labs, or by reading the clean dataset you saved in the last lab data structuring and combining.
+
+Then, answer the following questions:
+
+Create a new DataFrame that only includes customers who have a total_claim_amount greater than $1,000 and have a response of "Yes" to the last marketing campaign.
+Analyze the average total_claim_amount by each policy type and gender for customers who have responded "Yes" to the last marketing campaign.
+Analyze the total number of customers who have policies in each state, and then filter the results to only include states where there are more than 500 customers.
+Find the median customer lifetime value by education level and gender.
+Find the maximum, minimum, and average number of open complaints by state and policy type.
+The marketing team wants to analyze the number of policies sold by state and month.
+Present the data in a table where the months are arranged as columns and the states are arranged as rows.
+
+Display a new DataFrame that contains the number of policies sold by month by state for the top 3 states with the highest number of policies sold.
+Hint:
+
+To accomplish this, you will first need to group the data by state and month, then count the number of policies sold for each group. Afterwards, you will need to sort the data by the count of policies sold in descending order.
+Next, you will select the top 3 states with the highest number of policies sold.
+Finally, you will create a new DataFrame that contains the number of policies sold by month for each of the top 3 states.
+The marketing team wants to analyze the effect of different marketing channels on the customer response rate.
+Hint: You can use melt to unpivot the data and create a table that shows the customer response rate (those who responded "Yes") by marketing channel.
+
+*answer
+import numpy as np
+import pandas as pd
+
+file = pd.read_csv('https://raw.githubusercontent.com/data-bootcamp-v4/data/main/marketing_customer_analysis.csv')
+
+display(file)
+
+file2 = file.copy()
+file3 = file2.dropna()
+
+display(file3)
+
+
+
+file3['Effective To Date'] = pd.to_datetime(file3['Effective To Date'], errors='coerce')
+file3.dtypes
+
+file3['month'] = file3['Effective To Date'].dt.month_name()
+file3['month']
+
+display(file3)
+file3.columns
+
+
+file4 = file3[(file3['Total Claim Amount'] > 1000) & (file3['Response'] == "Yes") ]
+file4
+
+file5=file3[ file3['Response'] == "Yes" ]
+file5
+summary_table2 = file5.pivot_table(values='Total Claim Amount', index=['Gender','Policy Type'], aggfunc='mean')
+display(summary_table2)
+
+file6 = file3['State'].value_counts()>500
+file6
+
+summary_table3 = file3.pivot_table(values='Customer Lifetime Value', index=['Gender','Education'], aggfunc='median')
+display(summary_table3)
+        
+summary_table4 = file3.pivot_table(values='Number of Open Complaints', index=['State','Policy Type'], aggfunc=['min','max','mean'])
+display(summary_table4)
+
+summary_table5 = file3.pivot_table(values='Policy', index=['State','month'],aggfunc='count')
+summary_table5
+
+summary_table6 = file3.pivot_table(values='Number of Policies', index=['State','month'])
+top_states = summary_table6.groupby('State')['Number of Policies'].sum().nlargest(3).index
+display(top_states)
+
+verticalized = pd.melt(file3,id_vars=['Response','Sales Channel'])
+verticalized_yes =verticalized[(verticalized['Response'] == "Yes")] 
+verticalized_yes
